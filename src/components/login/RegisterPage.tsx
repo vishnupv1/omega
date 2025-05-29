@@ -146,28 +146,49 @@ const RegisterPage = ({ onSuccess = () => {}, onError = () => {} }) => {
   };
 
   const onSubmit = async (values: any) => {
-    const uniqueId = `${Date.now()}`;
+    try {
+      const response = await fetch(`/api/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          password: values.password,
+          phone: values.phoneNumber,
+          address: {
+            street: values.address,
+            city: values.city,
+            state: values.state,
+            country: values.country,
+            zipCode: values.postCode
+          }
+        }),
+      });
 
-    const newRegistration = { ...values, uid: uniqueId };
+      const data = await response.json();
 
-    const existingRegistrations = JSON.parse(
-      localStorage.getItem("registrationData") || "[]"
-    );
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "registrationData",
-        JSON.stringify([...existingRegistrations, newRegistration])
-      );
-      localStorage.setItem("login_user", JSON.stringify(newRegistration));
-      dispatch(login(newRegistration));
+      // Store user data in localStorage
+      localStorage.setItem('login_user', JSON.stringify(data.data));
+      dispatch(login(data.data));
 
-      router.push("/");
-    }
+      // Redirect to home page
+      router.push('/');
 
-    // Reset form after successful submission
-    if (formikRef.current) {
-      formikRef.current.resetForm();
+      // Reset form after successful submission
+      if (formikRef.current) {
+        formikRef.current.resetForm();
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      // You might want to show an error message to the user here
+      alert(error.message || 'Registration failed. Please try again.');
     }
   };
 

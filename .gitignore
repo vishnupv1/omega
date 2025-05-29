@@ -43,3 +43,5 @@ next-env.d.ts
 *.psd
 
 *.bk
+package-lock.json
+package-lock.json
